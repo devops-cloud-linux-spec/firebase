@@ -1,0 +1,293 @@
+{
+  "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents a user account in the Momentum Tracker application, storing personal preferences and identification details without sensitive authentication credentials.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity."
+        },
+        "username": {
+          "type": "string",
+          "description": "A unique username chosen by the user for identification within the app."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address, primarily for communication and potentially for external authentication system integration.",
+          "format": "email"
+        },
+        "preferredColorScheme": {
+          "type": "string",
+          "description": "The user's preference for the application's color scheme (e.g., 'light', 'dark', 'system')."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user profile was initially created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating the last time the user profile was modified.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "username",
+        "email",
+        "createdAt"
+      ]
+    },
+    "Habit": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Habit",
+      "type": "object",
+      "description": "Defines a specific daily habit that a user wants to track, including its core attributes and ownership by a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Habit entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N Habit)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The concise name of the habit (e.g., 'Read 30 mins', 'Daily Workout', 'Code for 1 hour')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed explanation or personal goal associated with the habit."
+        },
+        "category": {
+          "type": "string",
+          "description": "A categorization for the habit (e.g., 'Health', 'Learning', 'Productivity', 'Mindfulness')."
+        },
+        "targetValue": {
+          "type": "number",
+          "description": "The numeric value representing the target quantity for the habit (e.g., 30 for 30 minutes, 10 for 10 pages). Optional if habit is just 'done/not done'."
+        },
+        "targetUnit": {
+          "type": "string",
+          "description": "The unit of measurement for the targetValue (e.g., 'minutes', 'pages', 'reps', 'km')."
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "A flag indicating whether the habit is currently active and being tracked by the user."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when this habit was first created by the user.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating the last time the habit's details were modified.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "isActive",
+        "createdAt"
+      ]
+    },
+    "HabitLog": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "HabitLog",
+      "type": "object",
+      "description": "Captures a single daily entry for a user's habit, recording its completion status and actual progress for a specific date.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the HabitLog entry."
+        },
+        "habitId": {
+          "type": "string",
+          "description": "Reference to Habit. (Relationship: Habit 1:N HabitLog)"
+        },
+        "logDate": {
+          "type": "string",
+          "description": "The specific calendar date for which the habit's progress is being recorded (e.g., 'YYYY-MM-DD').",
+          "format": "date"
+        },
+        "isCompleted": {
+          "type": "boolean",
+          "description": "A boolean indicating whether the habit was successfully completed on the logDate."
+        },
+        "actualValue": {
+          "type": "number",
+          "description": "The actual numeric value achieved for the habit on the logDate (e.g., 25 for 25 minutes read), if applicable."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional personal notes or reflections about the habit's progress for that particular day."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when this habit log entry was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating the last time this habit log entry was modified.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "habitId",
+        "logDate",
+        "isCompleted",
+        "createdAt"
+      ]
+    },
+    "HabitReminder": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "HabitReminder",
+      "type": "object",
+      "description": "Stores customizable reminder settings configured by the user for a specific habit, facilitating timely notifications.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the HabitReminder entity."
+        },
+        "habitId": {
+          "type": "string",
+          "description": "Reference to Habit. (Relationship: Habit 1:N HabitReminder)"
+        },
+        "reminderTime": {
+          "type": "string",
+          "description": "The specific time of day when the reminder should be triggered (e.g., 'HH:MM:SS').",
+          "format": "time"
+        },
+        "message": {
+          "type": "string",
+          "description": "An optional custom message that will be displayed with the reminder notification."
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "A flag indicating whether this specific reminder is currently enabled or disabled."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when this reminder was initially set up.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating the last time this reminder's settings were modified.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "habitId",
+        "reminderTime",
+        "isActive",
+        "createdAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores personal preferences and identification details for a user. Access is restricted to the authenticated user matching the 'userId' path segment.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user, derived from Firebase Authentication's UID."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/habits/{habitId}",
+        "definition": {
+          "entityName": "Habit",
+          "schema": {
+            "$ref": "#/backend/entities/Habit"
+          },
+          "description": "Stores individual habit definitions for a specific user. Includes denormalized 'userId' field in the document data, which must match the 'userId' in the path for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user, owning the habit."
+            },
+            {
+              "name": "habitId",
+              "description": "The unique identifier of the habit."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/habits/{habitId}/habitLogs/{habitLogId}",
+        "definition": {
+          "entityName": "HabitLog",
+          "schema": {
+            "$ref": "#/backend/entities/HabitLog"
+          },
+          "description": "Captures a daily log entry for a user's habit. Includes denormalized 'userId' (from parent UserProfile) and 'habitId' (from parent Habit) in the document data for direct authorization checks, ensuring independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user, owning the habit log."
+            },
+            {
+              "name": "habitId",
+              "description": "The unique identifier of the parent habit."
+            },
+            {
+              "name": "habitLogId",
+              "description": "The unique identifier for this specific habit log entry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/habits/{habitId}/habitReminders/{habitReminderId}",
+        "definition": {
+          "entityName": "HabitReminder",
+          "schema": {
+            "$ref": "#/backend/entities/HabitReminder"
+          },
+          "description": "Stores customizable reminder settings for a specific habit. Includes denormalized 'userId' (from parent UserProfile) and 'habitId' (from parent Habit) in the document data for direct authorization checks, ensuring independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user, owning the habit reminder."
+            },
+            {
+              "name": "habitId",
+              "description": "The unique identifier of the parent habit."
+            },
+            {
+              "name": "habitReminderId",
+              "description": "The unique identifier for this specific habit reminder."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure for the Momentum Tracker application prioritizes security, scalability, and debuggability by strictly adhering to the mandated design principles, especially Authorization Independence via denormalization and structural segregation. All user-specific data is nested under a top-level `/users/{userId}` collection, establishing clear ownership and simplifying security rules.\n\n**Authorization Independence (Denormalization Strategy):**\n1.  **UserProfile:** Stored at `/users/{userId}`. The `userId` in the path directly corresponds to `request.auth.uid`, making authorization for `UserProfile` documents atomic and independent.\n2.  **Habit:** Stored at `/users/{userId}/habits/{habitId}`. The `Habit` document explicitly includes a `userId` field, which must match the `{userId}` in the path and `request.auth.uid`. This denormalization ensures that rules for `Habit` documents do not need to perform a `get()` operation on the parent `UserProfile` document to determine ownership.\n3.  **HabitLog:** Stored at `/users/{userId}/habits/{habitId}/habitLogs/{habitLogId}`. To ensure authorization independence, each `HabitLog` document **must also include a `userId` field** (in addition to `habitId`). This `userId` will directly match the `{userId}` in the path and `request.auth.uid`. This allows security rules to evaluate `HabitLog` access by checking `request.auth.uid == resource.data.userId` and `request.resource.data.habitId == habitId` without fetching the parent `Habit` or `UserProfile` document.\n4.  **HabitReminder:** Stored at `/users/{userId}/habits/{habitId}/habitReminders/{habitReminderId}`. Similar to `HabitLog`, each `HabitReminder` document **must include a `userId` field** (in addition to `habitId`). This `userId` will match the `{userId}` in the path and `request.auth.uid`, preventing the need for `get()` operations on parent documents for authorization.\n\nThis pervasive denormalization of `userId` into all user-owned subcollection documents is critical. It eliminates `get()` calls in Firestore Security Rules for ownership checks, which significantly enhances rule performance, simplifies debugging, and enables atomic batch writes/transactions across related documents without breaking authorization.\n\n**Queryable Authorization Patterns (QAPs):**\n1.  **Path-Based Ownership:** The `/users/{userId}/...` structure inherently supports QAPs for private data. A user can only `list` or `get` documents within their own `/users/{userId}/` subtree. This naturally filters data by the authenticated user's ID, preventing users from inadvertently or maliciously querying data belonging to others. Security rules can simply enforce `request.auth.uid == userId` (where `userId` is the path wildcard) for all operations, ensuring that `list` queries are implicitly scoped to the current user's data. This fulfills the mandate that rules are not filters, as the structure itself enforces the query boundaries.\n2.  **Structural Segregation:** Each collection (`users`, `habits`, `habitLogs`, `habitReminders`) maintains a homogeneous security posture. All documents within `/users/{userId}/habits` are owned by `{userId}`, and similarly for their subcollections. This prevents mixing data with different access requirements in the same collection, making security rules concise and predictable."
+  }
+}

@@ -1,0 +1,114 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * Momentum Tracker Security Rules
+     *
+     * CORE PHILOSOPHY:
+     * This ruleset implements a strict user-ownership model. The security posture is built 
+     * on the principle that users have exclusive access to their own data tree. 
+     * Authorization is decoupled from the data schema to allow for rapid prototyping 
+     * while maintaining rigorous access control.
+     *
+     * DATA STRUCTURE:
+     * The database is organized hierarchically under the `/users/{userId}` path. 
+     * All related entities (Habits, Logs, Reminders) are nested subcollections 
+     * within the specific user's document, creating a natural boundary for security.
+     *
+     * KEY SECURITY DECISIONS:
+     * 1. Private Access Only: There are no public collections. All data access requires 
+     *    authentication and matching ownership.
+     * 2. Path-Based Authorization: We rely on the `{userId}` wildcard in the path 
+     *    as the primary source of truth for ownership.
+     * 3. Identity Verification: Every request is validated against `request.auth.uid`.
+     * 4. State Safety: Update and Delete operations are strictly protected by 
+     *    existence checks to prevent operations on null resources.
+     *
+     * DENORMALIZATION FOR AUTHORIZATION:
+     * To ensure high performance and avoid costly `get()` calls in rules, the application 
+     * denormalizes the `userId` and relevant parent IDs into every document. 
+     * Rules enforce that these internal fields match the path wildcards upon creation 
+     * and remain immutable during updates.
+     *
+     * STRUCTURAL SEGREGATION:
+     * All user-owned data is segregated into the `/users` root, ensuring that 
+     * 'list' operations are implicitly scoped to the authenticated user's own data.
+     */
+
+    // --- Global Helper Functions ---
+
+    /** Checks if the request is from a signed-in user. */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /** Checks if the authenticated user's UID matches the provided userId. */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /** Combines ownership check with document existence for updates and deletes. */
+    function isExistingOwner(userId) {
+      return resource != null && isOwner(userId);
+    }
+
+    // --- Collection-Specific Match Blocks ---
+
+    /**
+     * @description Rules for the UserProfile entity. Restricts access to the user's own profile.
+     * @path /users/{userId}
+     * @allow Authenticated user (get) their own profile.
+     * @deny User 'A' (create/update) User 'B's profile.
+     * @principle Self-creation and strict path-to-ID ownership validation.
+     */
+    match /users/{userId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+
+      /**
+       * @description Rules for the Habit entity. Owners manage their own habits.
+       * @path /users/{userId}/habits/{habitId}
+       * @allow User (list) all their own habits.
+       * @deny Unauthenticated user (get) any habit.
+       * @principle Validates relational integrity between path {userId} and internal userId field.
+       */
+      match /habits/{habitId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId && request.resource.data.id == habitId;
+        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId && request.resource.data.id == resource.data.id;
+        allow delete: if isExistingOwner(userId);
+
+        /**
+         * @description Rules for HabitLog entries. Records daily progress for a habit.
+         * @path /users/{userId}/habits/{habitId}/habitLogs/{habitLogId}
+         * @allow User (create) a log entry for their own habit.
+         * @deny User (update) a log entry where the parent habitId is being changed.
+         * @principle Triple-point validation: Ensures userId, habitId, and logId match the path structure.
+         */
+        match /habitLogs/{habitLogId} {
+          allow get, list: if isOwner(userId);
+          allow create: if isOwner(userId) && request.resource.data.userId == userId && request.resource.data.habitId == habitId && request.resource.data.id == habitLogId;
+          allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId && request.resource.data.habitId == resource.data.habitId && request.resource.data.id == resource.data.id;
+          allow delete: if isExistingOwner(userId);
+        }
+
+        /**
+         * @description Rules for HabitReminder settings. Configures notifications for habits.
+         * @path /users/{userId}/habits/{habitId}/habitReminders/{habitReminderId}
+         * @allow User (delete) their own reminder.
+         * @deny User 'X' (list) reminders belonging to User 'Y'.
+         * @principle Enforces path-based isolation and immutability of relational links.
+         */
+        match /habitReminders/{habitReminderId} {
+          allow get, list: if isOwner(userId);
+          allow create: if isOwner(userId) && request.resource.data.userId == userId && request.resource.data.habitId == habitId && request.resource.data.id == habitReminderId;
+          allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId && request.resource.data.habitId == resource.data.habitId && request.resource.data.id == resource.data.id;
+          allow delete: if isExistingOwner(userId);
+        }
+      }
+    }
+  }
+}
